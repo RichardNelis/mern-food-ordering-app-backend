@@ -5,8 +5,8 @@
   "main": "./src/index.ts",
   "scripts": {
     "dev": "nodemon",
-    "build-backend": "npm install && npx tsc",
-    "start-backend": "node backend/dist/index.js"
+    "build": "npm install && npx tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
