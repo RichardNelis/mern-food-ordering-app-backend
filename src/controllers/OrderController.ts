@@ -22,6 +22,20 @@ type CheckoutSessionRequest = {
   restaurantId: string;
 };
 
+const getMyOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find({ user: req.userId })
+      .populate("restaurant")
+      .populate("user");
+
+   
+    res.json(orders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 const stripeWebhookHandler = async (req: Request, res: Response) => {
   let event;
 
@@ -57,13 +71,9 @@ const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const checkoutSessionRequest: CheckoutSessionRequest = req.body;
 
-    console.log("checkoutSessionRequest", checkoutSessionRequest);
-
     const restaurant = await Restaurant.findById(
       checkoutSessionRequest.restaurantId
     );
-
-    console.log("restaurant", restaurant);
 
     if (!restaurant) {
       throw new Error("Restaurant not found");
@@ -78,14 +88,10 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       createdAt: new Date(),
     });
 
-    console.log("newOrder", newOrder);
-
     const lineItems = createLineItems(
       checkoutSessionRequest,
       restaurant.menuItems
     );
-
-    console.log("lineItems", lineItems);
 
     const session = await createSession(
       lineItems,
@@ -93,8 +99,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       restaurant.deliveryPrice,
       restaurant._id.toString()
     );
-
-    console.log("session", session);
 
     if (!session.url) {
       return res.status(500).json({ message: "Error creating stripe session" });
@@ -174,4 +178,5 @@ const createSession = async (
 export default {
   createCheckoutSession,
   stripeWebhookHandler,
+  getMyOrders,
 };
